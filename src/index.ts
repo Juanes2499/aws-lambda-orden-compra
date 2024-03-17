@@ -62,87 +62,101 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
     })
   })
 
+  const itemBody: any = {
+    "ordenCompraId": {
+      "S": uuidData
+    },
+    "productos": {
+      "L": productsList
+    },
+    "valorTotalPagar": {
+      "S": body.valorTotalPagar
+    },
+    "cliente": {
+      "M": {
+        "clienteId": {
+          "S": body.cliente.clienteId
+        },
+        "nombres": {
+          "S": body.cliente.nombres
+        },
+        "apellidos": {
+          "S": body.cliente.apellidos
+        },
+        "tipoDocumento": {
+          "S": body.cliente.tipoDocumento
+        },
+        "numerodDocuemnto": {
+          "S": body.cliente.numerodDocuemnto
+        },
+        "paisDocumento": {
+          "S": body.cliente.paisDocumento
+        },
+        "contacto": {
+          "M": {
+            "indicativo": {
+              "S": body.cliente.contacto.indicativo
+            },
+            "numeroCelular": {
+              "S": body.cliente.contacto.numeroCelular
+            },
+            "correoElectronico": {
+              "S": body.cliente.contacto.correoElectronico
+            }
+          }
+        },
+        "direccion": {
+          "M": {
+            "pais": {
+              "S": body.cliente.direccion.pais
+            },
+            "estado": {
+              "S": body.cliente.direccion.estado
+            },
+            "ciudad": {
+              "S": body.cliente.direccion.ciudad
+            },
+            "codigoPostal": {
+              "S": body.cliente.direccion.codigoPostal
+            },
+            "descripcionDireccion": {
+              "S": body.cliente.direccion.descripcionDireccion
+            }
+          }
+        },
+        "aplicaFacturaElectronica": {
+          "BOOL": body.cliente.aplicaFacturaElectronica
+        }
+      }
+    },
+    "stages": {
+      "L": [
+        {
+          "S": "PUT IN SQS DOMICILIOS"
+        },
+      ]
+    },
+    "createdAt": {
+      "S": currentTime
+    },
+    "updatedAt": {
+      "S": currentTime
+    }
+  }
+
+  if(body.mockDLQ){
+    itemBody["mockDLQ"] =  {
+      "M": {
+        "process": {"BOOL": body.mockDLQ.process}
+      }
+    }
+  }
+
   try {
 
     const item = {
       TableName: "DynamoDb-Orden-Compra",
-      Item: {
-        "ordenCompraId": {
-          "S": uuidData
-        },
-        "productos": {
-          "L": productsList
-        },
-        "valorTotalPagar": {
-          "S": body.valorTotalPagar
-        },
-        "cliente": {
-          "M": {
-            "clienteId": {
-              "S": body.cliente.clienteId
-            },
-            "nombres": {
-              "S": body.cliente.nombres
-            },
-            "apellidos": {
-              "S": body.cliente.apellidos
-            },
-            "tipoDocumento": {
-              "S": body.cliente.tipoDocumento
-            },
-            "numerodDocuemnto": {
-              "S": body.cliente.numerodDocuemnto
-            },
-            "paisDocumento": {
-              "S": body.cliente.paisDocumento
-            },
-            "contacto": {
-              "M": {
-                "indicativo": {
-                  "S": body.cliente.contacto.indicativo
-                },
-                "numeroCelular": {
-                  "S": body.cliente.contacto.numeroCelular
-                },
-                "correoElectronico": {
-                  "S": body.cliente.contacto.correoElectronico
-                }
-              }
-            },
-            "direccion": {
-              "M": {
-                "pais": {
-                  "S": body.cliente.direccion.pais
-                },
-                "estado": {
-                  "S": body.cliente.direccion.estado
-                },
-                "ciudad": {
-                  "S": body.cliente.direccion.ciudad
-                },
-                "codigoPostal": {
-                  "S": body.cliente.direccion.codigoPostal
-                },
-                "descripcionDireccion": {
-                  "S": body.cliente.direccion.descripcionDireccion
-                }
-              }
-            },
-            "aplicaFacturaElectronica": {
-              "BOOL": body.cliente.aplicaFacturaElectronica
-            }
-          }
-        },
-        "stage": {
-          "S": "SQS DOMICILIOS"
-        },
-        "createdAt": {
-          "S": currentTime
-        },
-        "updatedAt": {
-          "S": currentTime
-        }
-      }
+      Item: itemBody
     };
 
     const command = new PutItemCommand(item);
@@ -154,7 +168,9 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/211125768545/Sqs-Domicilios",
         MessageBody: JSON.stringify({
           ordenCompraId: uuidData,
-          data: body
+          data: body,
+          createdAt: currentTime,
+          updatedAt: currentTime
         }),
       };
 
@@ -165,8 +181,10 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
         system: "Orden Compra",
         ordenCompraId: uuidData,
         dataSqs: dataSqsSent,
-        stage: "SQS DOMICILIOS",
-        data: body
+        stage: "PUT IN SQS DOMICILIOS",
+        data: body,
+        createdAt: currentTime,
+        updatedAt: currentTime
       };
 
       return response;

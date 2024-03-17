@@ -1,5 +1,8 @@
 # AWS Lambda Function - Orden Compra
 
+## Introuction
+Example to send receive information through API Gateway, trigger an AWS lambda, save the information in AWS DynamoDB and send the information to AWS SQS
+
 ## Develop in Local
 - Execute npm run develop-in-local
 

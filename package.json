@@ -1,0 +1,17 @@
+{
+    "name": "Lambda-Domicilios-dlq",
+    "version": "0.0.1",
+    "description": "",
+    "author": "",
+    "private": true,
+    "license": "UNLICENSED",
+    "scripts": {
+        "start": "nest start"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.535.0",
+        "@aws-sdk/client-sqs": "^3.535.0",
+        "@aws-sdk/lib-dynamodb": "^3.535.0",
+        "uuid": "^9.0.1"
+    }
+}

@@ -130,11 +130,44 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
       }
     },
     "stages": {
-      "L": [
-        {
-          "S": "PUT IN SQS DOMICILIOS"
+      "M":{
+        "putInSqsDomicilios": {
+          "M": {
+            "attempts":{
+              "N": "1"
+            },
+            "success": {
+              "BOOL": true
+            },
+            "updatedAt": {
+              "S": currentTime
+            }
+          }
         },
-      ]
+        "domiciliosProcessFailed": {
+          "M": {
+            "attempts":{
+              "N": "0"
+            },
+            "success": {
+              "BOOL": false
+            },
+            "updatedAt": {
+              "S": currentTime
+            }
+          }
+        },
+        "domiciliosProcessed": {
+          "M": {
+            "success": {
+              "BOOL": false
+            },
+            "updatedAt": {
+              "S": currentTime
+            }
+          }
+        }
+      }
     },
     "createdAt": {
       "S": currentTime
@@ -181,7 +214,22 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
         system: "Orden Compra",
         ordenCompraId: uuidData,
         dataSqs: dataSqsSent,
-        stage: "PUT IN SQS DOMICILIOS",
+        stages: {
+          putInSqsDomicilios: {
+            attempts: 1,
+            success: true,
+            updatedAt: currentTime
+          },
+          domiciliosProcessFailed: {
+            attempts: 0,
+            success: false,
+            updatedAt: currentTime
+          },
+          domiciliosProcessed: {
+            success: false,
+            updatedAt: currentTime
+          },
+        },
         data: body,
         createdAt: currentTime,
         updatedAt: currentTime
